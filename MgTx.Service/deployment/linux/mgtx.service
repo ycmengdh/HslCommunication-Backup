@@ -1,0 +1,27 @@
+[Unit]
+Description=MgTx Service - 猛攻通讯工业通信服务
+Documentation=https://github.com/mgtx/mgtx-service
+After=network.target
+
+[Service]
+Type=simple
+User=mgtx
+Group=mgtx
+WorkingDirectory=/opt/mgtx
+ExecStart=/usr/bin/dotnet /opt/mgtx/MgTx.Service.dll
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=mgtx
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://+:8080
+Environment=DOTNET_RUNNING_IN_CONTAINER=true
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/mgtx/logs
+
+[Install]
+WantedBy=multi-user.target

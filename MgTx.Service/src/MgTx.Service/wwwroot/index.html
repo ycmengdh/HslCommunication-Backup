@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HslCommunication 工业通信平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+        }
+        .sidebar-item {
+            transition: all 0.3s ease;
+        }
+        .sidebar-item:hover {
+            background: rgba(56, 189, 248, 0.1);
+        }
+        .sidebar-item.active {
+            background: rgba(56, 189, 248, 0.2);
+            border-left: 4px solid #38bdf8;
+        }
+        .card {
+            backdrop-filter: blur(10px);
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        .tag-badge {
+            transition: all 0.3s ease;
+        }
+        .tag-badge:hover {
+            transform: translateY(-2px);
+        }
+        .status-online {
+            animation: pulse-green 2s ease infinite;
+        }
+        .status-offline {
+            animation: pulse-red 2s ease infinite;
+        }
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        }
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-[#0f172a] border-r border-gray-700 fixed h-full z-10">
+            <div class="p-4 border-b border-gray-700">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                    工业通信平台
+                </h1>
+                <p class="text-xs text-gray-500 mt-1">HslCommunication v2.0</p>
+            </div>
+            
+            <nav class="p-4">
+                <div class="space-y-2">
+                    <a href="#dashboard" onclick="showPage('dashboard')" class="sidebar-item active block px-4 py-3 rounded-lg text-gray-300 cursor-pointer">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z"/>
+                            </svg>
+                            <span>仪表盘</span>
+                        </span>
+                    </a>
+                    <a href="#devices" onclick="showPage('devices')" class="sidebar-item block px-4 py-3 rounded-lg text-gray-300 cursor-pointer">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M12 3v2m-3 5h6m-6 4h6M5 7h14v10H5z"/>
+                            </svg>
+                            <span>设备管理</span>
+                        </span>
+                    </a>
+                    <a href="#tags" onclick="showPage('tags')" class="sidebar-item block px-4 py-3 rounded-lg text-gray-300 cursor-pointer">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                            </svg>
+                            <span>标签监控</span>
+                        </span>
+                    </a>
+                    <a href="#scripts" onclick="showPage('scripts')" class="sidebar-item block px-4 py-3 rounded-lg text-gray-300 cursor-pointer">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            <span>脚本引擎</span>
+                        </span>
+                    </a>
+                    <a href="#opc" onclick="showPage('opc')" class="sidebar-item block px-4 py-3 rounded-lg text-gray-300 cursor-pointer">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01"/>
+                            </svg>
+                            <span>OPC配置</span>
+                        </span>
+                    </a>
+                    <a href="#network" onclick="showPage('network')" class="sidebar-item block px-4 py-3 rounded-lg text-gray-300 cursor-pointer">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8m-8 5h8m-8 5h8m2-12a2 2 0 11-4 0 2 2 0 014 0zM14 10a2 2 0 11-4 0 2 2 0 014 0zM10 17a2 2 0 11-4 0 2 2 0 014 0zM4 12a2 2 0 012-2h.5a2.5 0 010 1H6a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>网络服务</span>
+                        </span>
+                    </a>
+                    <a href="#logs" onclick="showPage('logs')" class="sidebar-item block px-4 py-3 rounded-lg text-gray-300 cursor-pointer">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h.01M12 12h.01M15 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                            <span>日志查看</span>
+                        </span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 ml-64">
+            <!-- Header -->
+            <header class="bg-[#0f172a] border-b border-gray-700 sticky top-0 z-50 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 id="page-title" class="text-2xl font-semibold text-white">仪表盘</h2>
+                        <p id="page-desc" class="text-sm text-gray-400">实时监控系统运行状态</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <div id="system-status" class="flex items-center gap-2 px-4 py-2 bg-green-500/20 border border-green-500/50 rounded-full">
+                                <div class="w-2 h-2 bg-green-400 rounded-full status-online"></div>
+                                <span class="text-green-400 text-sm font-medium">系统运行正常</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right">
+                                <div class="text-sm text-gray-400">运行时间</div>
+                                <div id="uptime" class="text-lg font-semibold text-cyan-400">0:00:00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content Area -->
+            <main class="p-6">
+                <!-- Dashboard Page -->
+                <div id="page-dashboard" class="page">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-gray-400 text-sm">活跃连接</div>
+                                    <div id="active-connections" class="text-3xl font-bold text-cyan-400 mt-2">0</div>
+                                </div>
+                                <div class="w-14 h-14 bg-blue-500/20 rounded-full flex items-center justify-center">
+                                    <svg class="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm text-green-400 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                                </svg>
+                                <span>较昨日 +2</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-gray-400 text-sm">在线设备</div>
+                                    <div id="online-devices" class="text-3xl font-bold text-green-400 mt-2">0</div>
+                                </div>
+                                <div class="w-14 h-14 bg-green-500/20 rounded-full flex items-center justify-center">
+                                    <svg class="w-7 h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm text-gray-400">
+                                <span>离线: <span class="text-red-400" id="offline-devices">0</span></span>
+                            </div>
+                        </div>
+                        
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-gray-400 text-sm">监控标签</div>
+                                    <div id="monitored-tags" class="text-3xl font-bold text-purple-400 mt-2">0</div>
+                                </div>
+                                <div class="w-14 h-14 bg-purple-500/20 rounded-full flex items-center justify-center">
+                                    <svg class="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm text-gray-400">
+                                <span>报警: <span class="text-red-400" id="alarm-tags">0</span></span>
+                            </div>
+                        </div>
+                        
+                        <div class="card rounded-xl p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-gray-400 text-sm">运行脚本</div>
+                                    <div id="running-scripts" class="text-3xl font-bold text-yellow-400 mt-2">0</div>
+                                </div>
+                                <div class="w-14 h-14 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                                    <svg class="w-7 h-7 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm text-gray-400">
+                                <span>错误: <span class="text-red-400" id="script-errors">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="card rounded-xl p-6">
+                                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    </svg>
+                                    实时数据更新
+                                </h3>
+                                <div id="realtime-tags" class="space-y-3 max-h-96 overflow-y-auto">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <div class="card rounded-xl p-6">
+                                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h.01M12 12h.01M15 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                    </svg>
+                                    最近事件
+                                </h3>
+                                <div id="recent-events" class="space-y-3 max-h-64 overflow-y-auto">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Devices Page -->
+                <div id="page-devices" class="page hidden">
+                    <div class="mb-6 flex items-center justify-between">
+                        <button onclick="openAddDeviceModal()" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            添加设备
+                        </button>
+                    </div>
+                    <div id="devices-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    </div>
+                </div>
+                
+                <!-- Tags Page -->
+                <div id="page-tags" class="page hidden">
+                    <div class="mb-6 flex items-center justify-between">
+                        <button onclick="openAddTagModal()" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            添加标签
+                        </button>
+                    </div>
+                    <div class="card rounded-xl p-6">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="border-b border-gray-700">
+                                    <tr>
+                                        <th class="pb-4 text-gray-400 font-medium">标签名</th>
+                                        <th class="pb-4 text-gray-400 font-medium">设备</th>
+                                        <th class="pb-4 text-gray-400 font-medium">地址</th>
+                                        <th class="pb-4 text-gray-400 font-medium">数据类型</th>
+                                        <th class="pb-4 text-gray-400 font-medium">当前值</th>
+                                        <th class="pb-4 text-gray-400 font-medium">质量</th>
+                                        <th class="pb-4 text-gray-400 font-medium">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tags-table" class="divide-y divide-gray-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Scripts Page -->
+                <div id="page-scripts" class="page hidden">
+                    <div class="mb-6 flex items-center justify-between">
+                        <button onclick="openAddScriptModal()" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            创建脚本
+                        </button>
+                    </div>
+                    <div id="scripts-list" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    </div>
+                </div>
+                
+                <!-- OPC Page -->
+                <div id="page-opc" class="page hidden">
+                    <div class="mb-6 flex items-center justify-between">
+                        <button onclick="openAddOpcServerModal()" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            添加OPC服务器
+                        </button>
+                    </div>
+                    <div id="opc-list" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    </div>
+                </div>
+                
+                <!-- Network Page -->
+                <div id="page-network" class="page hidden">
+                    <div class="mb-6 flex items-center justify-between">
+                        <button onclick="openStartServerModal()" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            启动服务器
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">TCP服务器</h3>
+                            <div id="tcp-servers" class="space-y-4">
+                            </div>
+                        </div>
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">UDP服务器</h3>
+                            <div id="udp-servers" class="space-y-4">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Logs Page -->
+                <div id="page-logs" class="page hidden">
+                    <div class="card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4">系统日志</h3>
+                        <div id="logs-container" class="bg-[#1e293b] rounded-lg p-4 h-[600px] overflow-y-auto font-mono text-sm">
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div id="modal-content" class="bg-[#0f172a] border border-gray-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
+        </div>
+    </div>
+    
+    <script>
+        let currentPage = 'dashboard';
+        let startTime = Date.now();
+        let websocket;
+        
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`page-${page}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(el => {
+                if (el.getAttribute('href') === `#${page}`) {
+                    el.classList.add('active');
+                }
+            });
+            
+            const titles = {
+                'dashboard': { title: '仪表盘', desc: '实时监控系统运行状态' },
+                'devices': { title: '设备管理', desc: '管理所有连接的工业设备' },
+                'tags': { title: '标签监控', desc: '监控和配置数据标签' },
+                'scripts': { title: '脚本引擎', desc: '创建和管理自动化脚本' },
+                'opc': { title: 'OPC配置', desc: '配置OPC服务器和设备' },
+                'network': { title: '网络服务', desc: '管理TCP/UDP网络服务' },
+                'logs': { title: '日志查看', desc: '查看系统运行日志' }
+            };
+            
+            document.getElementById('page-title').textContent = titles[page].title;
+            document.getElementById('page-desc').textContent = titles[page].desc;
+            
+            if (page === 'dashboard') refreshDashboard();
+            if (page === 'devices') refreshDevices();
+            if (page === 'tags') refreshTags();
+            if (page === 'scripts') refreshScripts();
+            if (page === 'opc') refreshOpc();
+            if (page === 'logs') refreshLogs();
+        }
+        
+        function updateUptime() {
+            const elapsed = Date.now() - startTime;
+            const hours = Math.floor(elapsed / 3600000);
+            const minutes = Math.floor((elapsed % 3600000) / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            document.getElementById('uptime').textContent = 
+                `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        setInterval(updateUptime, 1000);
+        
+        function refreshDashboard() {
+            document.getElementById('active-connections').textContent = Math.floor(Math.random() * 5) + 2;
+            document.getElementById('online-devices').textContent = Math.floor(Math.random() * 8) + 3;
+            document.getElementById('offline-devices').textContent = Math.floor(Math.random() * 2);
+            document.getElementById('monitored-tags').textContent = Math.floor(Math.random() * 50) + 10;
+            document.getElementById('alarm-tags').textContent = Math.floor(Math.random() * 3);
+            document.getElementById('running-scripts').textContent = Math.floor(Math.random() * 5) + 1;
+            document.getElementById('script-errors').textContent = Math.floor(Math.random() * 2);
+            
+            const tagsContainer = document.getElementById('realtime-tags');
+            tagsContainer.innerHTML = '';
+            const sampleTags = ['温度', '压力', '流量', '转速', '液位'];
+            sampleTags.forEach(tag => {
+                const value = (Math.random() * 100).toFixed(2);
+                tagsContainer.innerHTML += `
+                    <div class="flex items-center justify-between bg-gray-800/50 rounded-lg p-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 bg-green-400 rounded-full tag-badge"></div>
+                            <div>
+                                <div class="font-medium">${tag}</div>
+                                <div class="text-xs text-gray-500">DB1.DBD${Math.floor(Math.random() * 100)}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-semibold text-cyan-400">${value}</div>
+                            <div class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            const eventsContainer = document.getElementById('recent-events');
+            eventsContainer.innerHTML = '';
+            const events = [
+                '设备 PLC-01 连接成功',
+                '温度数据异常报警',
+                '脚本 Auto-Scale 执行完成',
+                '用户 Admin 登录系统'
+            ];
+            events.forEach(event => {
+                eventsContainer.innerHTML += `
+                    <div class="flex items-start gap-3">
+                        <div class="w-2 h-2 bg-cyan-400 rounded-full mt-2 tag-badge"></div>
+                        <div>
+                            <div class="text-sm">${event}</div>
+                            <div class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        function refreshDevices() {
+            const container = document.getElementById('devices-list');
+            container.innerHTML = '';
+            
+            const devices = [
+                { name: 'PLC-01 (西门子S7)', type: 'Siemens S7', ip: '192.168.1.100', port: 102, online: true },
+                { name: 'PLC-02 (三菱)', type: 'Mitsubishi', ip: '192.168.1.101', port: 5002, online: true },
+                { name: 'Modbus-TCP-01', type: 'Modbus TCP', ip: '192.168.1.102', port: 502, online: false }
+            ];
+            
+            devices.forEach(device => {
+                container.innerHTML += `
+                    <div class="card rounded-xl p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M12 3v2m-3 5h6m-6 4h6M5 7h14v10H5z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-lg">${device.name}</div>
+                                    <div class="text-sm text-gray-400">${device.type}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 px-3 py-1 bg-${device.online ? 'green' : 'red'}-500/20 border border-${device.online ? 'green' : 'red'}-500/50 rounded-full">
+                                <div class="w-2 h-2 bg-${device.online ? 'green' : 'red'}-400 rounded-full"></div>
+                                <span class="text-${device.online ? 'green' : 'red'}-400 text-sm">${device.online ? '在线' : '离线'}</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm text-gray-400">
+                            <div class="flex items-center justify-between">
+                                <span>IP地址</span>
+                                <span class="text-gray-200 font-mono">${device.ip}:${device.port}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>连接时间</span>
+                                <span class="text-gray-200">${new Date().toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center gap-2">
+                            <button class="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">查看详情</button>
+                            <button class="px-4 py-2 bg-red-500/20 border border-red-500/50 hover:bg-red-500/30 rounded-lg transition-colors">断开</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        function refreshTags() {
+            const tbody = document.getElementById('tags-table');
+            tbody.innerHTML = '';
+            
+            const tags = [
+                { name: '温度', device: 'PLC-01', address: 'DB1.DBD0', type: 'Float', value: '23.45', quality: 'Good' },
+                { name: '压力', device: 'PLC-01', address: 'DB1.DBD4', type: 'Float', value: '1.23', quality: 'Good' },
+                { name: '流量', device: 'PLC-02', address: 'D100', type: 'Int16', value: '456', quality: 'Good' }
+            ];
+            
+            tags.forEach(tag => {
+                const qualityColor = tag.quality === 'Good' ? 'text-green-400' : 'text-red-400';
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-700/50">
+                        <td class="py-4 font-medium">${tag.name}</td>
+                        <td class="py-4 text-gray-400">${tag.device}</td>
+                        <td class="py-4 font-mono text-gray-300">${tag.address}</td>
+                        <td class="py-4"><span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">${tag.type}</span></td>
+                        <td class="py-4 text-cyan-400 font-semibold">${tag.value}</td>
+                        <td class="py-4 ${qualityColor}">${tag.quality}</td>
+                        <td class="py-4">
+                            <div class="flex items-center gap-2">
+                                <button class="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                                <button class="p-2 hover:bg-gray-700 rounded-lg transition-colors text-red-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function refreshScripts() {
+            const container = document.getElementById('scripts-list');
+            container.innerHTML = '';
+            
+            const scripts = [
+                { name: 'Auto-Scale', desc: '自动缩放处理', trigger: '定时器', status: '运行中' },
+                { name: 'Alarm-Handler', desc: '报警处理脚本', trigger: '事件', status: '运行中' },
+                { name: 'Data-Logger', desc: '数据记录脚本', trigger: '定时器', status: '停止' }
+            ];
+            
+            scripts.forEach(script => {
+                const statusColor = script.status === '运行中' ? 'green' : 'red';
+                container.innerHTML += `
+                    <div class="card rounded-xl p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-lg">${script.name}</div>
+                                    <div class="text-sm text-gray-400">${script.desc}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 px-3 py-1 bg-${statusColor}-500/20 border border-${statusColor}-500/50 rounded-full">
+                                <div class="w-2 h-2 bg-${statusColor}-400 rounded-full"></div>
+                                <span class="text-${statusColor}-400 text-sm">${script.status}</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm text-gray-400">
+                            <div class="flex items-center justify-between">
+                                <span>触发方式</span>
+                                <span class="text-gray-200">${script.trigger}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>运行次数</span>
+                                <span class="text-gray-200">${Math.floor(Math.random() * 1000)}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center gap-2">
+                            <button class="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">编辑</button>
+                            <button class="flex-1 px-4 py-2 bg-${statusColor}-500/20 border border-${statusColor}-500/50 hover:bg-${statusColor}-500/30 rounded-lg transition-colors">
+                                ${script.status === '运行中' ? '停止' : '运行'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        function refreshOpc() {
+            const container = document.getElementById('opc-list');
+            container.innerHTML = '';
+            
+            const servers = [
+                { name: '主OPC服务器', url: 'opc.tcp://localhost:4840', devices: 3, tags: 45, online: true },
+                { name: '副OPC服务器', url: 'opc.tcp://192.168.1.200:4840', devices: 1, tags: 12, online: false }
+            ];
+            
+            servers.forEach(server => {
+                container.innerHTML += `
+                    <div class="card rounded-xl p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-lg">${server.name}</div>
+                                    <div class="text-sm text-gray-400">${server.url}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 px-3 py-1 bg-${server.online ? 'green' : 'red'}-500/20 border border-${server.online ? 'green' : 'red'}-500/50 rounded-full">
+                                <div class="w-2 h-2 bg-${server.online ? 'green' : 'red'}-400 rounded-full"></div>
+                                <span class="text-${server.online ? 'green' : 'red'}-400 text-sm">${server.online ? '在线' : '离线'}</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-sm text-gray-400">
+                            <div class="bg-gray-800/50 rounded-lg p-3 text-center">
+                                <div class="text-2xl font-semibold text-cyan-400">${server.devices}</div>
+                                <div class="text-gray-500">设备数</div>
+                            </div>
+                            <div class="bg-gray-800/50 rounded-lg p-3 text-center">
+                                <div class="text-2xl font-semibold text-purple-400">${server.tags}</div>
+                                <div class="text-gray-500">标签数</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center gap-2">
+                            <button class="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">配置</button>
+                            <button class="px-4 py-2 bg-red-500/20 border border-red-500/50 hover:bg-red-500/30 rounded-lg transition-colors">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        function refreshLogs() {
+            const container = document.getElementById('logs-container');
+            const logs = [
+                { type: 'INFO', time: new Date().toLocaleTimeString(), message: '系统启动完成' },
+                { type: 'INFO', time: new Date().toLocaleTimeString(), message: '连接设备 PLC-01' },
+                { type: 'WARN', time: new Date().toLocaleTimeString(), message: '数据刷新超时' },
+                { type: 'INFO', time: new Date().toLocaleTimeString(), message: '脚本 Auto-Scale 执行成功' }
+            ];
+            
+            container.innerHTML = '';
+            logs.forEach(log => {
+                let color = 'text-gray-300';
+                if (log.type === 'WARN') color = 'text-yellow-400';
+                if (log.type === 'ERROR') color = 'text-red-400';
+                
+                container.innerHTML += `
+                    <div class="py-1 border-b border-gray-700/50">
+                        <span class="text-gray-500">[${log.time}]</span>
+                        <span class="${color} font-medium">[${log.type}]</span>
+                        <span class="text-gray-200">${log.message}</span>
+                    </div>
+                `;
+            });
+        }
+        
+        function openModal(content) {
+            document.getElementById('modal-content').innerHTML = content;
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.getElementById('modal-overlay').classList.add('flex');
+        }
+        
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+            document.getElementById('modal-overlay').classList.remove('flex');
+        }
+        
+        function openAddDeviceModal() {
+            openModal(`
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold mb-6">添加新设备</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">设备名称</label>
+                            <input type="text" placeholder="请输入设备名称" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">设备类型</label>
+                            <select class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                                <option>Siemens S7</option>
+                                <option>Modbus TCP</option>
+                                <option>Mitsubishi</option>
+                                <option>Omron</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">IP地址</label>
+                                <input type="text" placeholder="192.168.1.100" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">端口</label>
+                                <input type="number" value="502" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">机架号</label>
+                                <input type="number" value="0" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">槽号</label>
+                                <input type="number" value="1" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex items-center justify-end gap-3">
+                        <button onclick="closeModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">取消</button>
+                        <button onclick="closeModal()" class="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all">添加</button>
+                    </div>
+                </div>
+            `);
+        }
+        
+        function openAddTagModal() {
+            openModal(`
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold mb-6">添加数据标签</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">标签名称</label>
+                            <input type="text" placeholder="请输入标签名称" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">关联设备</label>
+                            <select class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                                <option>PLC-01</option>
+                                <option>PLC-02</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">地址</label>
+                            <input type="text" placeholder="DB1.DBD0" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">数据类型</label>
+                            <select class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                                <option>Float</option>
+                                <option>Int16</option>
+                                <option>Int32</option>
+                                <option>Bool</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex items-center justify-end gap-3">
+                        <button onclick="closeModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">取消</button>
+                        <button onclick="closeModal()" class="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all">添加</button>
+                    </div>
+                </div>
+            `);
+        }
+        
+        function openAddScriptModal() {
+            openModal(`
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold mb-6">创建新脚本</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">脚本名称</label>
+                            <input type="text" placeholder="请输入脚本名称" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">脚本描述</label>
+                            <textarea rows="2" placeholder="请输入脚本描述" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">触发方式</label>
+                            <select class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                                <option>定时器</option>
+                                <option>事件</option>
+                                <option>手动触发</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">脚本代码</label>
+                            <textarea rows="8" placeholder="// JavaScript 脚本
+// 可用变量: tags, context, data, log
+
+function processData(value) {
+    log.info('处理数据: ' + value);
+    return value * 1.2;
+}
+" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500 font-mono text-sm"></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex items-center justify-end gap-3">
+                        <button onclick="closeModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">取消</button>
+                        <button onclick="closeModal()" class="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all">创建</button>
+                    </div>
+                </div>
+            `);
+        }
+        
+        function openAddOpcServerModal() {
+            openModal(`
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold mb-6">添加OPC服务器</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">服务器名称</label>
+                            <input type="text" placeholder="请输入服务器名称" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">端点URL</label>
+                            <input type="text" placeholder="opc.tcp://localhost:4840" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">安全策略</label>
+                                <select class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                                    <option>None</option>
+                                    <option>Basic256Sha256</option>
+                                    <option>Aes256Sha256RsaPss</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">重连间隔(ms)</label>
+                                <input type="number" value="5000" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex items-center justify-end gap-3">
+                        <button onclick="closeModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">取消</button>
+                        <button onclick="closeModal()" class="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all">添加</button>
+                    </div>
+                </div>
+            `);
+        }
+        
+        function openStartServerModal() {
+            openModal(`
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold mb-6">启动网络服务器</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">服务类型</label>
+                            <select class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                                <option>TCP Server</option>
+                                <option>UDP Server</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">端口</label>
+                            <input type="number" value="5000" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">最大连接数</label>
+                                <input type="number" value="100" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">接收缓冲区</label>
+                                <input type="number" value="4096" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex items-center justify-end gap-3">
+                        <button onclick="closeModal()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">取消</button>
+                        <button onclick="closeModal()" class="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all">启动</button>
+                    </div>
+                </div>
+            `);
+        }
+        
+        document.getElementById('modal-overlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // Initial load
+        showPage('dashboard');
+        setInterval(refreshDashboard, 3000);
+    </script>
+</body>
+</html>

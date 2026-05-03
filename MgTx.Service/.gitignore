@@ -1,0 +1,146 @@
+# .NET 10 Build outputs
+bin/
+obj/
+out/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+*.userprefs
+*.rsuser
+*.suo
+*.cache
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+
+# NuGet
+*.nupkg
+*.snupkg
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Package Files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test Results
+TestResults/
+*.trx
+coverage/
+*.coverage
+*.coveragexml
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+.docker/
+
+# Secrets
+*.pem
+*.key
+*.pub
+*.secret
+
+# OS
+Thumbs.db
+.DS_Store
+
+# User-specific files
+*.rsuser
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebugPublic/
+[Rr]eleasePublic/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# RIA/Silverlight projects
+Generated_Code/
+
+# Backup & Report files
+*_Backup/
+*_Log/
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
+# Application files
+*.exe
+*.dll
+*.pdb
+*.mdb
+*.config
+
+# Web publish
+publish/
+publish-prod/
+publish/**/
+
+# Service logs
+/data/logs/
+/data/config/
+
+# Environment files
+.env
+.env.*
+appsettings.*.local.json

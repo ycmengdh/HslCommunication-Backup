@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>14.0</LangVersion>
+    <EnableAnalyzers>true</EnableAnalyzers>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>猛攻通讯服务 - 工业通信后台服务，提供RESTful API、WebSocket、Web UI和脚本引擎</Description>
+    <RootNamespace>MgTx.Service</RootNamespace>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MgTx.Core\MgTx.Core.csproj" />
+    <ProjectReference Include="..\MgTx.Plc\MgTx.Plc.csproj" />
+    <ProjectReference Include="..\MgTx.Network\MgTx.Network.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="YamlDotNet" Version="16.0.0" />
+    <PackageReference Include="Jint" Version="3.0.0-beta-2055" />
+    <PackageReference Include="IronPython" Version="3.4.0-beta1" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.ResponseCompression" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="wwwroot\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
