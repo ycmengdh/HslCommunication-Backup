@@ -78,7 +78,7 @@ public class OmronFinsNet : NetworkDeviceBase
         try
         {
             var addressResult = AnalysisAddress(address);
-            if (!addressResult.IsSuccess) return addressResult.Convert<byte[]>();
+            if (!addressResult.IsSuccess) return OperateResult<byte[]>.Fail(addressResult.Message, addressResult.ErrorCode);
 
             byte[] command = BuildReadCommand(addressResult.Content.typeCode, addressResult.Content.bitCode, addressResult.Content.address, length);
             var readResult = await ReadFromCoreServerAsync(command, cancellationToken);

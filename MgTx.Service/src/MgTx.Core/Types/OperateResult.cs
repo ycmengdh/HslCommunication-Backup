@@ -35,6 +35,11 @@ public record OperateResult(bool IsSuccess, string? Message = null, int ErrorCod
     public static OperateResult Fail(string message, int errorCode = -1) => new(false, message, errorCode);
     
     /// <summary>
+    /// 创建失败的操作结果 from another OperateResult
+    /// </summary>
+    public static OperateResult Fail(OperateResult result) => new(false, result.Message, result.ErrorCode);
+    
+    /// <summary>
     /// 将结果转换为带内容的类型
     /// </summary>
     /// <typeparam name="T">内容类型</typeparam>
@@ -68,8 +73,18 @@ public record OperateResult<T>(bool IsSuccess, T? Content, string? Message = nul
     public static OperateResult<T> Fail(string message, int errorCode = -1) => new(false, default, message, errorCode);
     
     /// <summary>
+    /// 创建带内容的失败操作结果 from another OperateResult
+    /// </summary>
+    public static OperateResult<T> Fail(OperateResult result) => new(false, default, result.Message, result.ErrorCode);
+    
+    /// <summary>
     /// 将带内容的结果转换为不带内容的类型
     /// </summary>
     /// <returns>不带内容的操作结果</returns>
     public OperateResult Convert() => new(IsSuccess, Message, ErrorCode);
+    
+    /// <summary>
+    /// Implicit conversion to OperateResult
+    /// </summary>
+    public static implicit operator OperateResult(OperateResult<T> result) => result.Convert();
 }

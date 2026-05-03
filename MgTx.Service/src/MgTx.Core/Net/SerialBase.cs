@@ -6,6 +6,7 @@
 using System.IO.Ports;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using MgTx.Core.Types;
 
 namespace MgTx.Core.Net;
 

@@ -116,19 +116,19 @@ public class ScriptEngine : IScriptEngine
             var executionTime = DateTime.UtcNow - startTime;
             _logger.LogInformation("脚本执行完成: {ScriptId} - {Duration}ms", scriptId, executionTime.TotalMilliseconds);
             
-            return ScriptResult.Success(executionTime);
+            return ScriptResult.Ok(executionTime);
         }
         catch (JavaScriptException ex)
         {
             var executionTime = DateTime.UtcNow - startTime;
             _logger.LogError(ex, "JavaScript执行错误: {ScriptId}", scriptId);
-            return ScriptResult.Fail($"JavaScript执行错误: {ex.Message}", executionTime);
+            return ScriptResult.Failed($"JavaScript执行错误: {ex.Message}", executionTime);
         }
         catch (Exception ex)
         {
             var executionTime = DateTime.UtcNow - startTime;
             _logger.LogError(ex, "脚本执行错误: {ScriptId}", scriptId);
-            return ScriptResult.Fail($"脚本执行错误: {ex.Message}", executionTime);
+            return ScriptResult.Failed($"脚本执行错误: {ex.Message}", executionTime);
         }
     }
 
@@ -254,7 +254,7 @@ public class ScriptResult
     
     public object? Result { get; set; }
     
-    public static ScriptResult Success(TimeSpan executionTime)
+    public static ScriptResult Ok(TimeSpan executionTime)
     {
         return new ScriptResult
         {
@@ -263,7 +263,7 @@ public class ScriptResult
         };
     }
     
-    public static ScriptResult Fail(string error, TimeSpan executionTime)
+    public static ScriptResult Failed(string error, TimeSpan executionTime)
     {
         return new ScriptResult
         {

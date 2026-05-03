@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.Extensions.Logging;
+using MgTx.Core.Types;
 
 namespace MgTx.Core.Net;
 
@@ -10,7 +11,7 @@ public class NetworkServerBase : IDisposable
     protected Socket? ServerSocket;
     protected readonly Dictionary<string, Socket> Clients = new();
     protected CancellationTokenSource? ServerCts;
-    protected bool IsRunning;
+    public bool IsRunning { get; protected set; }
     
     public int Port { get; private set; }
     public int MaxConnections { get; set; } = 100;

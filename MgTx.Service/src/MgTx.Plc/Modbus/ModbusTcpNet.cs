@@ -100,7 +100,7 @@ public class ModbusTcpNet : NetworkDeviceBase
         {
             byte[] command = BuildReadCommand(3, startAddress, length);
             var readResult = await ReadFromCoreServerAsync(command, cancellationToken);
-            if (!readResult.IsSuccess) return readResult.Convert<ushort[]>();
+            if (!readResult.IsSuccess) return OperateResult<ushort[]>.Fail(readResult.Message, readResult.ErrorCode);
 
             if (readResult.Content!.Length < 9) return OperateResult<ushort[]>.Fail("响应数据过短");
 
@@ -120,7 +120,7 @@ public class ModbusTcpNet : NetworkDeviceBase
         {
             byte[] command = BuildReadCommand(4, startAddress, length);
             var readResult = await ReadFromCoreServerAsync(command, cancellationToken);
-            if (!readResult.IsSuccess) return readResult.Convert<ushort[]>();
+            if (!readResult.IsSuccess) return OperateResult<ushort[]>.Fail(readResult.Message, readResult.ErrorCode);
 
             if (readResult.Content!.Length < 9) return OperateResult<ushort[]>.Fail("响应数据过短");
 
@@ -140,7 +140,7 @@ public class ModbusTcpNet : NetworkDeviceBase
         {
             byte[] command = BuildReadCommand(1, startAddress, length);
             var readResult = await ReadFromCoreServerAsync(command, cancellationToken);
-            if (!readResult.IsSuccess) return readResult.Convert<bool[]>();
+            if (!readResult.IsSuccess) return OperateResult<bool[]>.Fail(readResult.Message, readResult.ErrorCode);
 
             if (readResult.Content!.Length < 9) return OperateResult<bool[]>.Fail("响应数据过短");
 
@@ -170,7 +170,7 @@ public class ModbusTcpNet : NetworkDeviceBase
         {
             byte[] command = BuildReadCommand(2, startAddress, length);
             var readResult = await ReadFromCoreServerAsync(command, cancellationToken);
-            if (!readResult.IsSuccess) return readResult.Convert<bool[]>();
+            if (!readResult.IsSuccess) return OperateResult<bool[]>.Fail(readResult.Message, readResult.ErrorCode);
 
             if (readResult.Content!.Length < 9) return OperateResult<bool[]>.Fail("响应数据过短");
 
@@ -357,7 +357,7 @@ public class ModbusTcpNet : NetworkDeviceBase
         var sendResult = await SendAsync(send, cancellationToken);
         if (!sendResult.IsSuccess)
         {
-            return OperateResult<byte[]>.Fail(sendResult);
+            return OperateResult<byte[]>.Fail(sendResult.Message, sendResult.ErrorCode);
         }
 
         var receiveResult = await ReceiveAsync(7, cancellationToken);

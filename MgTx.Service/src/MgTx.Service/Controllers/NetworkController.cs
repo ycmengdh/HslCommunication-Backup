@@ -123,16 +123,16 @@ public class NetworkController : ControllerBase
     }
 
     [HttpGet("tcp/clients")]
-    public ActionResult<ApiResponse<IEnumerable<TcpClientInfo>>> GetTcpClients([FromQuery] string serverId)
+    public ActionResult<ApiResponse<IEnumerable<MgTx.Network.TcpClientInfo>>> GetTcpClients([FromQuery] string serverId)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(serverId))
             {
-                return BadRequest(ApiResponse<IEnumerable<TcpClientInfo>>.Fail("服务器ID不能为空", 1006));
+                return BadRequest(ApiResponse<IEnumerable<MgTx.Network.TcpClientInfo>>.Fail("服务器ID不能为空", 1006));
             }
 
-            var clients = _tcpServer.GetConnectedClients().Select(c => new TcpClientInfo
+            var clients = _tcpServer.GetConnectedClients().Select(c => new MgTx.Network.TcpClientInfo
             {
                 ClientId = c.ClientId,
                 IpAddress = c.IpAddress,
@@ -140,12 +140,12 @@ public class NetworkController : ControllerBase
                 LastActivity = c.LastActivity
             });
 
-            return Ok(ApiResponse<IEnumerable<TcpClientInfo>>.Ok(clients));
+            return Ok(ApiResponse<IEnumerable<MgTx.Network.TcpClientInfo>>.Ok(clients));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取 TCP 客户端列表失败");
-            return StatusCode(500, ApiResponse<IEnumerable<TcpClientInfo>>.Fail(ex.Message, 1008));
+            return StatusCode(500, ApiResponse<IEnumerable<MgTx.Network.TcpClientInfo>>.Fail(ex.Message, 1008));
         }
     }
 }

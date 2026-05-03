@@ -1,5 +1,6 @@
 using MgTx.Core.Types;
 using FluentAssertions;
+using Xunit;
 
 namespace MgTx.Tests;
 

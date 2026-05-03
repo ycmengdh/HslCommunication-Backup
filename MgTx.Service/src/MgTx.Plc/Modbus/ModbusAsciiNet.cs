@@ -8,6 +8,7 @@ using MgTx.Core.Transfer;
 using MgTx.Core.Types;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Text;
 
 namespace MgTx.Plc.Modbus;
 
@@ -44,8 +45,8 @@ public class ModbusAsciiNet : SerialBase
         PortName = "COM1";
         BaudRate = 9600;
         DataBits = 8;
-        StopBits = StopBits.One;
-        Parity = Parity.None;
+        StopBits = System.IO.Ports.StopBits.One;
+        Parity = System.IO.Ports.Parity.None;
     }
 
     /// <summary>

@@ -6,6 +6,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using MgTx.Core.Transfer;
+using MgTx.Core.Types;
 
 namespace MgTx.Core.Net;
 
@@ -64,7 +65,7 @@ public abstract class NetworkDeviceBase : NetworkBase
         var sendResult = await SendAsync(send, cancellationToken);
         if (!sendResult.IsSuccess)
         {
-            return OperateResult<byte[]>.Fail(sendResult);
+            return OperateResult<byte[]>.Fail(sendResult.Message ?? "发送失败", sendResult.ErrorCode);
         }
 
         var receiveResult = await ReceiveAsync(1024, cancellationToken);
@@ -78,9 +79,14 @@ public abstract class NetworkDeviceBase : NetworkBase
         var readResult = await ReadAsync(address, 1, cancellationToken);
         if (!readResult.IsSuccess)
         {
-            return OperateResult<bool>.Fail(readResult);
+            return OperateResult<bool>.Fail(readResult.Message ?? "读取失败", readResult.ErrorCode);
         }
 
+        if (readResult.Content == null)
+        {
+            return OperateResult<bool>.Fail("内容为空");
+        }
+        
         return OperateResult<bool>.Success(ByteTransform.TransBool(readResult.Content, 0));
     }
 
@@ -89,10 +95,15 @@ public abstract class NetworkDeviceBase : NetworkBase
         var readResult = await ReadAsync(address, length, cancellationToken);
         if (!readResult.IsSuccess)
         {
-            return OperateResult<short[]>.Fail(readResult);
+            return OperateResult<short[]>.Fail(readResult.Message ?? "读取失败", readResult.ErrorCode);
         }
 
-        return OperateResult<short[]>.Success(ByteTransform.TransInt16(readResult.Content, 0, length));
+        if (readResult.Content == null)
+        {
+            return OperateResult<short[]>.Fail("内容为空");
+        }
+        
+        return OperateResult<short[]>.Success(ByteTransform.TransInt16Array(readResult.Content, 0, length));
     }
 
     public virtual async Task<OperateResult<ushort[]>> ReadUInt16Async(string address, ushort length, CancellationToken cancellationToken = default)
@@ -100,10 +111,15 @@ public abstract class NetworkDeviceBase : NetworkBase
         var readResult = await ReadAsync(address, length, cancellationToken);
         if (!readResult.IsSuccess)
         {
-            return OperateResult<ushort[]>.Fail(readResult);
+            return OperateResult<ushort[]>.Fail(readResult.Message ?? "读取失败", readResult.ErrorCode);
         }
 
-        return OperateResult<ushort[]>.Success(ByteTransform.TransUInt16(readResult.Content, 0, length));
+        if (readResult.Content == null)
+        {
+            return OperateResult<ushort[]>.Fail("内容为空");
+        }
+        
+        return OperateResult<ushort[]>.Success(ByteTransform.TransUInt16Array(readResult.Content, 0, length));
     }
 
     public virtual async Task<OperateResult<int[]>> ReadInt32Async(string address, ushort length, CancellationToken cancellationToken = default)
@@ -111,10 +127,15 @@ public abstract class NetworkDeviceBase : NetworkBase
         var readResult = await ReadAsync(address, length, cancellationToken);
         if (!readResult.IsSuccess)
         {
-            return OperateResult<int[]>.Fail(readResult);
+            return OperateResult<int[]>.Fail(readResult.Message ?? "读取失败", readResult.ErrorCode);
         }
 
-        return OperateResult<int[]>.Success(ByteTransform.TransInt32(readResult.Content, 0, length));
+        if (readResult.Content == null)
+        {
+            return OperateResult<int[]>.Fail("内容为空");
+        }
+        
+        return OperateResult<int[]>.Success(ByteTransform.TransInt32Array(readResult.Content, 0, length));
     }
 
     public virtual async Task<OperateResult<uint[]>> ReadUInt32Async(string address, ushort length, CancellationToken cancellationToken = default)
@@ -122,10 +143,15 @@ public abstract class NetworkDeviceBase : NetworkBase
         var readResult = await ReadAsync(address, length, cancellationToken);
         if (!readResult.IsSuccess)
         {
-            return OperateResult<uint[]>.Fail(readResult);
+            return OperateResult<uint[]>.Fail(readResult.Message ?? "读取失败", readResult.ErrorCode);
         }
 
-        return OperateResult<uint[]>.Success(ByteTransform.TransUInt32(readResult.Content, 0, length));
+        if (readResult.Content == null)
+        {
+            return OperateResult<uint[]>.Fail("内容为空");
+        }
+        
+        return OperateResult<uint[]>.Success(ByteTransform.TransUInt32Array(readResult.Content, 0, length));
     }
 
     public virtual async Task<OperateResult<float[]>> ReadFloatAsync(string address, ushort length, CancellationToken cancellationToken = default)
@@ -133,10 +159,15 @@ public abstract class NetworkDeviceBase : NetworkBase
         var readResult = await ReadAsync(address, length, cancellationToken);
         if (!readResult.IsSuccess)
         {
-            return OperateResult<float[]>.Fail(readResult);
+            return OperateResult<float[]>.Fail(readResult.Message ?? "读取失败", readResult.ErrorCode);
         }
 
-        return OperateResult<float[]>.Success(ByteTransform.TransSingle(readResult.Content, 0, length));
+        if (readResult.Content == null)
+        {
+            return OperateResult<float[]>.Fail("内容为空");
+        }
+        
+        return OperateResult<float[]>.Success(ByteTransform.TransSingleArray(readResult.Content, 0, length));
     }
 
     public virtual async Task<OperateResult<string>> ReadStringAsync(string address, ushort length, CancellationToken cancellationToken = default)
@@ -144,9 +175,14 @@ public abstract class NetworkDeviceBase : NetworkBase
         var readResult = await ReadAsync(address, length, cancellationToken);
         if (!readResult.IsSuccess)
         {
-            return OperateResult<string>.Fail(readResult);
+            return OperateResult<string>.Fail(readResult.Message ?? "读取失败", readResult.ErrorCode);
         }
 
+        if (readResult.Content == null)
+        {
+            return OperateResult<string>.Fail("内容为空");
+        }
+        
         return OperateResult<string>.Success(Encoding.UTF8.GetString(readResult.Content));
     }
 

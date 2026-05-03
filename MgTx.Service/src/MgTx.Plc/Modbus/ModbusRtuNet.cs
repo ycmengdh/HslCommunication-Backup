@@ -44,8 +44,8 @@ public class ModbusRtuNet : SerialBase
         PortName = "COM1";
         BaudRate = 9600;
         DataBits = 8;
-        StopBits = StopBits.One;
-        Parity = Parity.None;
+        StopBits = System.IO.Ports.StopBits.One;
+        Parity = System.IO.Ports.Parity.None;
     }
 
     /// <summary>

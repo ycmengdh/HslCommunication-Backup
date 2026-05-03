@@ -86,17 +86,17 @@ public class PlcController : ControllerBase
     }
 
     [HttpGet("connections")]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ConnectionInfo>>>> GetConnections()
+    public async Task<ActionResult<ApiResponse<IEnumerable<Models.ConnectionInfo>>>> GetConnections()
     {
         try
         {
             var connections = await _plcService.GetConnectionsAsync();
-            return Ok(ApiResponse<IEnumerable<ConnectionInfo>>.Ok(connections));
+            return Ok(ApiResponse<IEnumerable<Models.ConnectionInfo>>.Ok(connections));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "获取连接列表失败");
-            return StatusCode(500, ApiResponse<IEnumerable<ConnectionInfo>>.Fail(ex.Message, 1008));
+            return StatusCode(500, ApiResponse<IEnumerable<Models.ConnectionInfo>>.Fail(ex.Message, 1008));
         }
     }
 

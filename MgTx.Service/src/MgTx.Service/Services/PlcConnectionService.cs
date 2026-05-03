@@ -2,7 +2,7 @@ using MgTx.Core.Transfer;
 using MgTx.Core.Types;
 using MgTx.Plc;
 using MgTx.Plc.Modbus;
-using MgTx.Plc.Melsec;
+using MgTx.Plc.Mitsubishi;
 using MgTx.Plc.Omron;
 using MgTx.Plc.Siemens;
 using MgTx.Service.Models;
@@ -15,7 +15,7 @@ public interface IPlcConnectionService
     Task<PlcConnectResponse> ConnectAsync(PlcConnectRequest request, CancellationToken cancellationToken = default);
     Task<ApiResponse> DisconnectAsync(string connectionId);
     Task<ApiResponse> DisconnectAllAsync();
-    Task<IEnumerable<ConnectionInfo>> GetConnectionsAsync();
+    Task<IEnumerable<Models.ConnectionInfo>> GetConnectionsAsync();
     Task<PlcStatusResponse?> GetStatusAsync(string connectionId);
     Task<PlcReadResponse?> ReadAsync(PlcReadRequest request, CancellationToken cancellationToken = default);
     Task<PlcWriteResponse?> WriteAsync(PlcWriteRequest request, CancellationToken cancellationToken = default);
@@ -45,7 +45,7 @@ public class PlcConnectionService : IPlcConnectionService
             {
                 "siemenss7" => CreateSiemensDevice(request),
                 "modbustcp" => CreateModbusDevice(request),
-                "melsecmc" => CreateMelsecDevice(request),
+                "melsecmc" => CreateMitsubishiDevice(request),
                 "omronfins" => CreateOmronDevice(request),
                 _ => null
             };
@@ -164,12 +164,12 @@ public class PlcConnectionService : IPlcConnectionService
         return ApiResponse.Ok(new { DisconnectedCount = count });
     }
 
-    public Task<IEnumerable<ConnectionInfo>> GetConnectionsAsync()
+    public Task<IEnumerable<Models.ConnectionInfo>> GetConnectionsAsync()
     {
-        List<ConnectionInfo> connections;
+        List<Models.ConnectionInfo> connections;
         lock (_lock)
         {
-            connections = _connections.Values.Select(c => new ConnectionInfo
+            connections = _connections.Values.Select(c => new Models.ConnectionInfo
             {
                 ConnectionId = c.ConnectionId,
                 ConnectionName = c.ConnectionName,
@@ -182,7 +182,7 @@ public class PlcConnectionService : IPlcConnectionService
             }).ToList();
         }
 
-        return Task.FromResult<IEnumerable<ConnectionInfo>>(connections);
+        return Task.FromResult<IEnumerable<Models.ConnectionInfo>>(connections);
     }
 
     public Task<PlcStatusResponse?> GetStatusAsync(string connectionId)
@@ -210,7 +210,7 @@ public class PlcConnectionService : IPlcConnectionService
         PlcConnection? connection;
         lock (_lock)
         {
-            if (!_connections.TryGetValue(connectionId: request.ConnectionId, out connection))
+            if (!_connections.TryGetValue(request.ConnectionId, out connection))
             {
                 return null;
             }
@@ -254,7 +254,7 @@ public class PlcConnectionService : IPlcConnectionService
         PlcConnection? connection;
         lock (_lock)
         {
-            if (!_connections.TryGetValue(connectionId: request.ConnectionId, out connection))
+            if (!_connections.TryGetValue(request.ConnectionId, out connection))
             {
                 return null;
             }
@@ -295,9 +295,9 @@ public class PlcConnectionService : IPlcConnectionService
 
     private SiemensS7Net CreateSiemensDevice(PlcConnectRequest request)
     {
-        var device = new SiemensS7Net(_logger as ILogger<SiemensS7Net>);
-        device.Rack = request.Rack;
-        device.Slot = request.Slot;
+        var device = new SiemensS7Net(SiemensPLCS.S1200, _logger as ILogger<SiemensS7Net>);
+        device.Rack = (byte)request.Rack;
+        device.Slot = (byte)request.Slot;
         device.ConnectTimeout = request.ConnectTimeout;
         device.ReceiveTimeout = request.ReadTimeout;
         device.SendTimeout = request.WriteTimeout;
@@ -313,9 +313,9 @@ public class PlcConnectionService : IPlcConnectionService
         return device;
     }
 
-    private MelsecMcNet CreateMelsecDevice(PlcConnectRequest request)
+    private MitsubishiMcNet CreateMitsubishiDevice(PlcConnectRequest request)
     {
-        var device = new MelsecMcNet(_logger as ILogger<MelsecMcNet>);
+        var device = new MitsubishiMcNet(MitsubishiMcType.Qna3E, _logger as ILogger<MitsubishiMcNet>);
         device.ConnectTimeout = request.ConnectTimeout;
         device.ReceiveTimeout = request.ReadTimeout;
         device.SendTimeout = request.WriteTimeout;
@@ -335,36 +335,60 @@ public class PlcConnectionService : IPlcConnectionService
     {
         if (device is SiemensS7Net siemens)
         {
-            var result = await siemens.ReadAsync(request.Address, request.Length, cancellationToken);
-            return result.Convert<object>();
+            var result = await siemens.ReadAsync(request.Address, (ushort)request.Length, cancellationToken);
+            if (result.IsSuccess)
+            {
+                return OperateResult<object>.Success(result.Content!);
+            }
+            return OperateResult<object>.Fail(result.Message, result.ErrorCode);
         }
         else if (device is ModbusTcpNet modbus)
         {
             if (request.Address.StartsWith("4"))
             {
                 var result = await modbus.ReadHoldingRegistersAsync(ushort.Parse(request.Address), (ushort)request.Length, cancellationToken);
-                return result.Convert<object>();
+                if (result.IsSuccess)
+                {
+                    return OperateResult<object>.Success(result.Content!);
+                }
+                return OperateResult<object>.Fail(result.Message, result.ErrorCode);
             }
             else if (request.Address.StartsWith("3"))
             {
                 var result = await modbus.ReadInputRegistersAsync(ushort.Parse(request.Address), (ushort)request.Length, cancellationToken);
-                return result.Convert<object>();
+                if (result.IsSuccess)
+                {
+                    return OperateResult<object>.Success(result.Content!);
+                }
+                return OperateResult<object>.Fail(result.Message, result.ErrorCode);
             }
             else
             {
-                var result = await modbus.ReadBytesAsync(ushort.Parse(request.Address), request.Length, cancellationToken);
-                return result.Convert<object>();
+                var result = await modbus.ReadAsync(request.Address, (ushort)request.Length, cancellationToken);
+                if (result.IsSuccess)
+                {
+                    return OperateResult<object>.Success(result.Content!);
+                }
+                return OperateResult<object>.Fail(result.Message, result.ErrorCode);
             }
         }
-        else if (device is MelsecMcNet melsec)
+        else if (device is MitsubishiMcNet mitsubishi)
         {
-            var result = await melsec.ReadAsync(request.Address, request.Length, cancellationToken);
-            return result.Convert<object>();
+            var result = await mitsubishi.ReadAsync(request.Address, (ushort)request.Length, cancellationToken);
+            if (result.IsSuccess)
+            {
+                return OperateResult<object>.Success(result.Content!);
+            }
+            return OperateResult<object>.Fail(result.Message, result.ErrorCode);
         }
         else if (device is OmronFinsNet omron)
         {
-            var result = await omron.ReadAsync(request.Address, request.Length, cancellationToken);
-            return result.Convert<object>();
+            var result = await omron.ReadAsync(request.Address, (ushort)request.Length, cancellationToken);
+            if (result.IsSuccess)
+            {
+                return OperateResult<object>.Success(result.Content!);
+            }
+            return OperateResult<object>.Fail(result.Message, result.ErrorCode);
         }
 
         return OperateResult<object>.Fail("不支持的设备类型", 1007);
@@ -382,12 +406,12 @@ public class PlcConnectionService : IPlcConnectionService
         else if (device is ModbusTcpNet modbus)
         {
             byte[] data = ConvertToBytes(value, request.DataType);
-            return await modbus.WriteBytesAsync(ushort.Parse(request.Address), data, cancellationToken);
+            return await modbus.WriteAsync(request.Address, data, cancellationToken);
         }
-        else if (device is MelsecMcNet melsec)
+        else if (device is MitsubishiMcNet mitsubishi)
         {
             byte[] data = ConvertToBytes(value, request.DataType);
-            return await melsec.WriteAsync(request.Address, data, cancellationToken);
+            return await mitsubishi.WriteAsync(request.Address, data, cancellationToken);
         }
         else if (device is OmronFinsNet omron)
         {

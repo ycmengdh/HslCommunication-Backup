@@ -125,7 +125,7 @@ public class OpcController : ControllerBase
             Description = request.Description,
             IsActive = true,
             Groups = new List<OpcGroup>(),
-            Properties = new Dictionary<string, object>(),
+            Properties = new Dictionary<string, string>(),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

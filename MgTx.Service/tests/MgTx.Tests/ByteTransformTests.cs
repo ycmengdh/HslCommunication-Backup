@@ -1,6 +1,7 @@
 using MgTx.Core.Transfer;
 using MgTx.Core.Types;
 using FluentAssertions;
+using Xunit;
 
 namespace MgTx.Tests;
 
@@ -10,7 +11,7 @@ public class ByteTransformTests
 
     public ByteTransformTests()
     {
-        _transform = new RegularByteTransform { DataFormat = DataFormat.DCBA };
+        _transform = new RegularByteTransform { DataFormat = DataFormat.ABCD };
     }
 
     [Fact]
@@ -18,7 +19,7 @@ public class ByteTransformTests
     {
         byte[] buffer = new byte[] { 0x00, 0x01 };
         
-        var result = _transform.TransInt16(buffer);
+        var result = _transform.TransInt16(buffer, 0);
         
         result.Should().Be(256);
     }
@@ -28,7 +29,7 @@ public class ByteTransformTests
     {
         byte[] buffer = new byte[] { 0x00, 0x01 };
         
-        var result = _transform.TransUInt16(buffer);
+        var result = _transform.TransUInt16(buffer, 0);
         
         result.Should().Be(256);
     }
@@ -38,7 +39,7 @@ public class ByteTransformTests
     {
         byte[] buffer = new byte[] { 0x01, 0x00, 0x00, 0x00 };
         
-        var result = _transform.TransInt32(buffer);
+        var result = _transform.TransInt32(buffer, 0);
         
         result.Should().Be(1);
     }
@@ -48,7 +49,7 @@ public class ByteTransformTests
     {
         byte[] buffer = new byte[] { 0x66, 0x66, 0xF6, 0x42 };
         
-        var result = _transform.TransSingle(buffer);
+        var result = _transform.TransSingle(buffer, 0);
         
         result.Should().BeApproximately(123.45f, 0.01f);
     }
@@ -77,7 +78,7 @@ public class ByteTransformTests
         _transform.DataFormat = DataFormat.DCBA;
         byte[] buffer = new byte[] { 0x01, 0x00 };
         
-        var result = _transform.TransInt16(buffer);
+        var result = _transform.TransInt16(buffer, 0);
         
         result.Should().Be(1);
     }
@@ -88,7 +89,7 @@ public class ByteTransformTests
         _transform.DataFormat = DataFormat.ABCD;
         byte[] buffer = new byte[] { 0x00, 0x01 };
         
-        var result = _transform.TransInt16(buffer);
+        var result = _transform.TransInt16(buffer, 0);
         
         result.Should().Be(1);
     }

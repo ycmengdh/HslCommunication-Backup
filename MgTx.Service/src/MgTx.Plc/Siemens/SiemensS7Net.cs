@@ -137,7 +137,7 @@ public class SiemensS7Net : NetworkDeviceBase
         try
         {
             var addressResult = AnalysisAddress(address);
-            if (!addressResult.IsSuccess) return addressResult.Convert<byte[]>();
+            if (!addressResult.IsSuccess) return OperateResult<byte[]>.Fail(addressResult.Message, addressResult.ErrorCode);
 
             byte[] command = BuildReadCommand(addressResult.Content.type, addressResult.Content.dbBlock, addressResult.Content.startAddress, length);
             var readResult = await ReadFromCoreServerAsync(command, cancellationToken);
