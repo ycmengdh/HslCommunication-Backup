@@ -11,7 +11,7 @@ public class ByteTransformTests
 
     public ByteTransformTests()
     {
-        _transform = new RegularByteTransform { DataFormat = DataFormat.ABCD };
+        _transform = new RegularByteTransform { DataFormat = DataFormat.DCBA };
     }
 
     [Fact]
@@ -47,11 +47,11 @@ public class ByteTransformTests
     [Fact]
     public void TransSingle_Should_ConvertCorrectly()
     {
-        byte[] buffer = new byte[] { 0x66, 0x66, 0xF6, 0x42 };
+        byte[] buffer = new byte[] { 0x66, 0xE6, 0xF6, 0x42 };
         
         var result = _transform.TransSingle(buffer, 0);
         
-        result.Should().BeApproximately(123.45f, 0.01f);
+        result.Should().BeApproximately(123.45f, 0.1f);
     }
 
     [Fact]

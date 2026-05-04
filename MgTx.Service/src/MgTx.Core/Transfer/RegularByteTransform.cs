@@ -14,6 +14,87 @@ public class RegularByteTransform : IByteTransform
 {
     public DataFormat DataFormat { get; set; } = DataFormat.ABCD;
 
+    private byte[] TransformBufferForRead(byte[] buffer, int index, int byteLength)
+    {
+        byte[] result = new byte[byteLength];
+        Array.Copy(buffer, index, result, 0, byteLength);
+
+        if (byteLength < 2)
+            return result;
+
+        switch (DataFormat)
+        {
+            case DataFormat.ABCD:
+                // Big-endian, no change
+                break;
+            case DataFormat.BADC:
+                // Swap each 2-byte pair
+                for (int i = 0; i < result.Length; i += 2)
+                {
+                    (result[i], result[i + 1]) = (result[i + 1], result[i]);
+                }
+                break;
+            case DataFormat.CDAB:
+                // Swap 2-byte words (for 4 and 8 bytes)
+                if (result.Length == 4)
+                {
+                    (result[0], result[2]) = (result[2], result[0]);
+                    (result[1], result[3]) = (result[3], result[1]);
+                }
+                else if (result.Length == 8)
+                {
+                    (result[0], result[4]) = (result[4], result[0]);
+                    (result[1], result[5]) = (result[5], result[1]);
+                    (result[2], result[6]) = (result[6], result[2]);
+                    (result[3], result[7]) = (result[7], result[3]);
+                }
+                break;
+            case DataFormat.DCBA:
+                // Little-endian, reverse entire buffer
+                Array.Reverse(result);
+                break;
+        }
+        return result;
+    }
+
+    private byte[] TransformBufferForWrite(byte[] buffer)
+    {
+        byte[] result = (byte[])buffer.Clone();
+
+        if (result.Length < 2)
+            return result;
+
+        switch (DataFormat)
+        {
+            case DataFormat.ABCD:
+                break;
+            case DataFormat.BADC:
+                for (int i = 0; i < result.Length; i += 2)
+                {
+                    (result[i], result[i + 1]) = (result[i + 1], result[i]);
+                }
+                break;
+            case DataFormat.CDAB:
+                if (result.Length == 4)
+                {
+                    (result[0], result[2]) = (result[2], result[0]);
+                    (result[1], result[3]) = (result[3], result[1]);
+                }
+                else if (result.Length == 8)
+                {
+                    (result[0], result[4]) = (result[4], result[0]);
+                    (result[1], result[5]) = (result[5], result[1]);
+                    (result[2], result[6]) = (result[6], result[2]);
+                    (result[3], result[7]) = (result[7], result[3]);
+                }
+                break;
+            case DataFormat.DCBA:
+                Array.Reverse(result);
+                break;
+        }
+        return result;
+    }
+
     public byte[] TransByte(byte[] buffer)
     {
         return (byte[])buffer.Clone();
@@ -26,76 +107,84 @@ public class RegularByteTransform : IByteTransform
 
     public short TransInt16(byte[] buffer, int index = 0)
     {
+        byte[] transformed = TransformBufferForRead(buffer, index, 2);
         byte[] tmp = new byte[2];
-        tmp[1] = buffer[index];
-        tmp[0] = buffer[index + 1];
+        tmp[1] = transformed[0];
+        tmp[0] = transformed[1];
         return BitConverter.ToInt16(tmp, 0);
     }
 
     public ushort TransUInt16(byte[] buffer, int index = 0)
     {
+        byte[] transformed = TransformBufferForRead(buffer, index, 2);
         byte[] tmp = new byte[2];
-        tmp[1] = buffer[index];
-        tmp[0] = buffer[index + 1];
+        tmp[1] = transformed[0];
+        tmp[0] = transformed[1];
         return BitConverter.ToUInt16(tmp, 0);
     }
 
     public int TransInt32(byte[] buffer, int index = 0)
     {
+        byte[] transformed = TransformBufferForRead(buffer, index, 4);
         byte[] tmp = new byte[4];
-        tmp[3] = buffer[index];
-        tmp[2] = buffer[index + 1];
-        tmp[1] = buffer[index + 2];
-        tmp[0] = buffer[index + 3];
+        tmp[3] = transformed[0];
+        tmp[2] = transformed[1];
+        tmp[1] = transformed[2];
+        tmp[0] = transformed[3];
         return BitConverter.ToInt32(tmp, 0);
     }
 
     public uint TransUInt32(byte[] buffer, int index = 0)
     {
+        byte[] transformed = TransformBufferForRead(buffer, index, 4);
         byte[] tmp = new byte[4];
-        tmp[3] = buffer[index];
-        tmp[2] = buffer[index + 1];
-        tmp[1] = buffer[index + 2];
-        tmp[0] = buffer[index + 3];
+        tmp[3] = transformed[0];
+        tmp[2] = transformed[1];
+        tmp[1] = transformed[2];
+        tmp[0] = transformed[3];
         return BitConverter.ToUInt32(tmp, 0);
     }
 
     public long TransInt64(byte[] buffer, int index = 0)
     {
+        byte[] transformed = TransformBufferForRead(buffer, index, 8);
         byte[] tmp = new byte[8];
         for (int i = 0; i < 8; i++)
         {
-            tmp[7 - i] = buffer[index + i];
+            tmp[7 - i] = transformed[i];
         }
         return BitConverter.ToInt64(tmp, 0);
     }
 
     public ulong TransUInt64(byte[] buffer, int index = 0)
     {
+        byte[] transformed = TransformBufferForRead(buffer, index, 8);
         byte[] tmp = new byte[8];
         for (int i = 0; i < 8; i++)
         {
-            tmp[7 - i] = buffer[index + i];
+            tmp[7 - i] = transformed[i];
         }
         return BitConverter.ToUInt64(tmp, 0);
     }
 
     public float TransSingle(byte[] buffer, int index = 0)
     {
+        byte[] transformed = TransformBufferForRead(buffer, index, 4);
         byte[] tmp = new byte[4];
-        tmp[3] = buffer[index];
-        tmp[2] = buffer[index + 1];
-        tmp[1] = buffer[index + 2];
-        tmp[0] = buffer[index + 3];
+        tmp[3] = transformed[0];
+        tmp[2] = transformed[1];
+        tmp[1] = transformed[2];
+        tmp[0] = transformed[3];
         return BitConverter.ToSingle(tmp, 0);
     }
 
     public double TransDouble(byte[] buffer, int index = 0)
     {
+        byte[] transformed = TransformBufferForRead(buffer, index, 8);
         byte[] tmp = new byte[8];
         for (int i = 0; i < 8; i++)
         {
-            tmp[7 - i] = buffer[index + i];
+            tmp[7 - i] = transformed[i];
         }
         return BitConverter.ToDouble(tmp, 0);
     }
@@ -295,56 +384,56 @@ public class RegularByteTransform : IByteTransform
     {
         byte[] buffer = BitConverter.GetBytes(value);
         Array.Reverse(buffer);
-        return buffer;
+        return TransformBufferForWrite(buffer);
     }
 
     public byte[] GetBytes(ushort value)
     {
         byte[] buffer = BitConverter.GetBytes(value);
         Array.Reverse(buffer);
-        return buffer;
+        return TransformBufferForWrite(buffer);
     }
 
     public byte[] GetBytes(int value)
     {
         byte[] buffer = BitConverter.GetBytes(value);
         Array.Reverse(buffer);
-        return buffer;
+        return TransformBufferForWrite(buffer);
     }
 
     public byte[] GetBytes(uint value)
     {
         byte[] buffer = BitConverter.GetBytes(value);
         Array.Reverse(buffer);
-        return buffer;
+        return TransformBufferForWrite(buffer);
     }
 
     public byte[] GetBytes(long value)
     {
         byte[] buffer = BitConverter.GetBytes(value);
         Array.Reverse(buffer);
-        return buffer;
+        return TransformBufferForWrite(buffer);
     }
 
     public byte[] GetBytes(ulong value)
     {
         byte[] buffer = BitConverter.GetBytes(value);
         Array.Reverse(buffer);
-        return buffer;
+        return TransformBufferForWrite(buffer);
     }
 
     public byte[] GetBytes(float value)
     {
         byte[] buffer = BitConverter.GetBytes(value);
         Array.Reverse(buffer);
-        return buffer;
+        return TransformBufferForWrite(buffer);
     }
 
     public byte[] GetBytes(double value)
     {
         byte[] buffer = BitConverter.GetBytes(value);
         Array.Reverse(buffer);
-        return buffer;
+        return TransformBufferForWrite(buffer);
     }
 
     public byte[] GetBytes(string value)
